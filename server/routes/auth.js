@@ -21,11 +21,11 @@ router.post('/login', async (req, res) => {
 
     const input = username.toLowerCase().trim();
 
-    // Find active user in Supabase
+    // Find active user in Supabase (by username or email)
     const { data: user, error } = await supabase
       .from('users')
       .select('*')
-      .eq('username', input)
+      .or(`username.eq.${input},email.eq.${input}`)
       .eq('is_active', 1)
       .maybeSingle();
 

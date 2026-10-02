@@ -3,7 +3,10 @@ const cors = require('cors');
 const path = require('path');
 
 // Database is Supabase; no local SQLite initialization is required.
-require('dotenv').config();
+const dotenv = require('dotenv');
+dotenv.config({ path: path.join(__dirname, '.env') });
+dotenv.config({ path: path.join(__dirname, '../.env') });
+dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -12,7 +15,7 @@ const PORT = process.env.PORT || 5000;
 // MIDDLEWARE
 // ============================================================
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://localhost:5173', 'http://127.0.0.1:5173'],
+  origin: true,
   credentials: true,
 }));
 app.use(express.json({ limit: '10mb' }));
@@ -21,20 +24,26 @@ app.use(express.urlencoded({ extended: true }));
 // ============================================================
 // ROUTES
 // ============================================================
-app.use('/api/auth', require('./routes/auth'));
-app.use('/api/users', require('./routes/users'));
-app.use('/api/leads', require('./routes/leads'));
-app.use('/api/escalations', require('./routes/escalations'));
-app.use('/api/projects', require('./routes/projects'));
-app.use('/api/wallets', require('./routes/wallets'));
-app.use('/api/notifications', require('./routes/notifications'));
-app.use('/api/reports', require('./routes/reports'));
-app.use('/api/files', require('./routes/files'));
+const apiRouter = express.Router();
+
+apiRouter.use('/auth', require('./routes/auth'));
+apiRouter.use('/users', require('./routes/users'));
+apiRouter.use('/leads', require('./routes/leads'));
+apiRouter.use('/escalations', require('./routes/escalations'));
+apiRouter.use('/projects', require('./routes/projects'));
+apiRouter.use('/wallets', require('./routes/wallets'));
+apiRouter.use('/notifications', require('./routes/notifications'));
+apiRouter.use('/reports', require('./routes/reports'));
+apiRouter.use('/files', require('./routes/files'));
 
 // Health check
-app.get('/api/health', (req, res) => {
+apiRouter.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString(), service: 'Dominova OS' });
 });
+
+// Mount router on both '/api' and '/' (supporting both local dev and serverless path routing)
+app.use('/api', apiRouter);
+app.use('/', apiRouter);
 
 // ============================================================
 // GLOBAL ERROR HANDLER
@@ -48,14 +57,16 @@ app.use((err, req, res, next) => {
 });
 
 // 404 for unknown API routes
-app.use('/api/*', (req, res) => {
-  res.status(404).json({ error: `Route ${req.path} not found` });
+app.use('*', (req, res) => {
+  res.status(404).json({ error: `Route ${req.originalUrl || req.url} not found` });
 });
 
-app.listen(PORT, () => {
-  console.log(`\n🚀 Dominova OS Server running on http://localhost:${PORT}`);
-  console.log(`📊 API available at http://localhost:${PORT}/api`);
-  console.log(`\n💡 Run seed: node db/seed.js`);
-});
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`\n🚀 Dominova OS Server running on http://localhost:${PORT}`);
+    console.log(`📊 API available at http://localhost:${PORT}/api`);
+    console.log(`\n💡 Run seed: node db/seed.js`);
+  });
+}
 
 module.exports = app;

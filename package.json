@@ -3,11 +3,23 @@
   "version": "1.0.0",
   "description": "Dominova Internal Operating System",
   "scripts": {
+    "build": "npm --prefix client install && npm --prefix client run build",
     "install:all": "npm install && cd server && npm install && cd ../client && npm install",
     "dev": "concurrently \"npm run server\" \"npm run client\"",
     "server": "cd server && npm run dev",
     "client": "cd client && npm run dev",
-    "seed": "cd server && node db/seed.js"
+    "seed": "cd server && node db/seed.js",
+    "start": "node server/index.js"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.117.1",
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^18.0.3",
+    "express": "^4.18.3",
+    "jsonwebtoken": "^9.0.2",
+    "multer": "^1.4.5-lts.1",
+    "uuid": "^9.0.0"
   },
   "devDependencies": {
     "concurrently": "^8.2.2"

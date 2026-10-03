@@ -20,7 +20,7 @@ async function sumRows(table, field, filters = []) {
   return (data || []).reduce((sum, row) => sum + Number(row[field] || 0), 0);
 }
 
-router.get('/overview', authenticate, requireRole('admin'), async (req, res) => {
+router.get('/overview', authenticate, requireRole('admin', 'manager'), async (req, res) => {
   try {
     const leadBase = [['is_deleted', 'eq', 0]];
     const projectBase = [['is_deleted', 'eq', 0]];
